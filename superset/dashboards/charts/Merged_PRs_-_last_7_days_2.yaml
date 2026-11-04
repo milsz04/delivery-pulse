@@ -1,0 +1,35 @@
+slice_name: Merged PRs - last 7 days
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  datasource: 1__table
+  viz_type: big_number_total
+  metric:
+    expressionType: SQL
+    sqlExpression: COUNT(*)
+    label: Merged PRs
+  adhoc_filters:
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: status
+    operator: ==
+    comparator: merged
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: merged_at
+    operator: TEMPORAL_RANGE
+    comparator: Last week
+  - expressionType: SQL
+    clause: WHERE
+    sqlExpression: NOT is_bot
+  subheader: throughput
+  y_axis_format: SMART_NUMBER
+  header_font_size: 0.4
+  subheader_font_size: 0.15
+query_context: null
+cache_timeout: null
+uuid: 5e9e44d0-f006-44be-b28e-6697693d0e7d
+version: 1.0.0
+dataset_uuid: f8b0db3b-9592-49aa-9073-6ba7573bca97

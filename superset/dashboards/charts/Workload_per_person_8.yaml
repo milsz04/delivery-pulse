@@ -1,0 +1,42 @@
+slice_name: Workload per person
+description: null
+certified_by: null
+certification_details: null
+viz_type: table
+params:
+  datasource: 3__table
+  viz_type: table
+  query_mode: raw
+  all_columns:
+  - person
+  - open_items_total
+  - open_prs
+  - open_issues_assigned
+  - merged_prs_30d
+  - commits_30d
+  order_by_cols:
+  - '["open_items_total", false]'
+  row_limit: 15
+  adhoc_filters: []
+  show_cell_bars: true
+  align_pn: false
+  color_pn: false
+  table_timestamp_format: smart_date
+  server_pagination: false
+  include_search: false
+  column_config:
+    open_items_total:
+      showCellBars: true
+    open_prs:
+      showCellBars: false
+    open_issues_assigned:
+      showCellBars: false
+    merged_prs_30d:
+      showCellBars: false
+    commits_30d:
+      showCellBars: false
+query_context: null
+cache_timeout: null
+uuid: 3d62cbb5-fa4a-4403-bde5-49578ce88c4d
+version: 1.0.0
+dataset_uuid: 47ae4491-e467-4d46-b4f2-15da4aea2fe1

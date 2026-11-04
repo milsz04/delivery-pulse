@@ -1,0 +1,32 @@
+slice_name: Unassigned open issues
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  datasource: 2__table
+  viz_type: big_number_total
+  metric:
+    expressionType: SQL
+    sqlExpression: COUNT(*)
+    label: Unassigned issues
+  adhoc_filters:
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: item_type
+    operator: ==
+    comparator: issue
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: owner
+    operator: ==
+    comparator: unassigned
+  subheader: need an owner
+  y_axis_format: SMART_NUMBER
+  header_font_size: 0.4
+  subheader_font_size: 0.15
+query_context: null
+cache_timeout: null
+uuid: 01665aad-343a-4647-a92c-483cd728878c
+version: 1.0.0
+dataset_uuid: 6c1b888a-10f9-4521-979a-446b2e1f8f30

@@ -1,0 +1,35 @@
+slice_name: Open pull requests
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  datasource: 1__table
+  viz_type: big_number_total
+  metric:
+    expressionType: SQL
+    sqlExpression: COUNT(*)
+    label: Open PRs
+  adhoc_filters:
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: status
+    operator: ==
+    comparator: open
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: is_draft
+    operator: ==
+    comparator: false
+  - expressionType: SQL
+    clause: WHERE
+    sqlExpression: NOT is_bot
+  subheader: non-draft, excluding bots
+  y_axis_format: SMART_NUMBER
+  header_font_size: 0.4
+  subheader_font_size: 0.15
+query_context: null
+cache_timeout: null
+uuid: c88d0b01-9009-4534-a4bf-e0a4b1d9feef
+version: 1.0.0
+dataset_uuid: f8b0db3b-9592-49aa-9073-6ba7573bca97

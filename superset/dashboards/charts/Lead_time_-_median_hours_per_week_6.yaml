@@ -1,0 +1,47 @@
+slice_name: Lead time - median hours per week
+description: null
+certified_by: null
+certification_details: null
+viz_type: echarts_timeseries_line
+params:
+  datasource: 1__table
+  viz_type: echarts_timeseries_line
+  x_axis: merged_at
+  time_grain_sqla: P1W
+  metrics:
+  - expressionType: SQL
+    sqlExpression: percentile_cont(0.5) WITHIN GROUP (ORDER BY lead_time_hours)
+    label: Median lead time (h)
+  groupby:
+  - repo
+  adhoc_filters:
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: status
+    operator: ==
+    comparator: merged
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: merged_at
+    operator: TEMPORAL_RANGE
+    comparator: No filter
+  - expressionType: SQL
+    clause: WHERE
+    sqlExpression: NOT is_bot
+  row_limit: 10000
+  show_legend: true
+  legendType: scroll
+  legendOrientation: top
+  markerEnabled: true
+  markerSize: 5
+  rich_tooltip: true
+  x_axis_time_format: smart_date
+  y_axis_format: ',.0f'
+  y_axis_title: Hours
+  y_axis_title_margin: 30
+  color_scheme: supersetColors
+query_context: null
+cache_timeout: null
+uuid: 44196019-5d6e-4cfe-8445-3b9b3532a86f
+version: 1.0.0
+dataset_uuid: f8b0db3b-9592-49aa-9073-6ba7573bca97

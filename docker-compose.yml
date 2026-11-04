@@ -16,7 +16,6 @@ services:
       timeout: 5s
       retries: 20
 
-  # One-off ETL run: docker compose run --rm etl
   etl:
     build: ./app
     command: ["python", "-m", "pulse.etl"]
@@ -27,5 +26,21 @@ services:
       db:
         condition: service_healthy
 
+  superset:
+    build: ./superset
+    env_file: .env
+    environment:
+      ANALYTICS_DATABASE_URI: postgresql://analytics_ro:analytics_ro@db:5432/pulse
+    ports:
+      - "127.0.0.1:8088:8088"
+    volumes:
+      - superset_home:/app/superset_home
+      - ./superset/dashboards:/app/dashboards
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  superset_home:

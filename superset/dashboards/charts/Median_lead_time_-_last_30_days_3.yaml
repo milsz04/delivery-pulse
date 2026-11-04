@@ -1,0 +1,35 @@
+slice_name: Median lead time - last 30 days
+description: null
+certified_by: null
+certification_details: null
+viz_type: big_number_total
+params:
+  datasource: 1__table
+  viz_type: big_number_total
+  metric:
+    expressionType: SQL
+    sqlExpression: percentile_cont(0.5) WITHIN GROUP (ORDER BY lead_time_hours)
+    label: Median lead time (h)
+  adhoc_filters:
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: status
+    operator: ==
+    comparator: merged
+  - expressionType: SIMPLE
+    clause: WHERE
+    subject: merged_at
+    operator: TEMPORAL_RANGE
+    comparator: Last month
+  - expressionType: SQL
+    clause: WHERE
+    sqlExpression: NOT is_bot
+  subheader: hours from PR opened to merged
+  y_axis_format: ',.1f'
+  header_font_size: 0.4
+  subheader_font_size: 0.15
+query_context: null
+cache_timeout: null
+uuid: bf42c719-3c8c-4ab2-ade1-894ef22022a6
+version: 1.0.0
+dataset_uuid: f8b0db3b-9592-49aa-9073-6ba7573bca97
