@@ -1,3 +1,10 @@
+x-app-env: &app-env
+  DATABASE_URL: postgresql://pulse:pulse@db:5432/pulse
+  ANALYTICS_DATABASE_URL: postgresql://analytics_ro:analytics_ro@db:5432/pulse
+  AI_DATABASE_URL: postgresql://ai_ro:ai_ro@db:5432/pulse
+  REPORTS_DIR: /app/reports
+  OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+
 services:
   db:
     image: postgres:16
@@ -15,16 +22,32 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    restart: unless-stopped
 
-  etl:
+  worker:
     build: ./app
-    command: ["python", "-m", "pulse.etl"]
+    command: ["python", "-m", "pulse.worker"]
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql://pulse:pulse@db:5432/pulse
+    environment: *app-env
+    volumes:
+      - ./reports:/app/reports
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
+  ai:
+    build: ./app
+    env_file: .env
+    environment: *app-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   superset:
     build: ./superset

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delivery Pulse AI</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --text: #1d2330; --muted: #5d6677;
+    --border: #e1e4ea; --accent: #2f6fde; --accent-text: #ffffff; --error: #b42318;
+    --code-bg: #f1f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --surface: #1b1f27; --text: #e6e9ef; --muted: #9aa3b2;
+      --border: #2c323d; --accent: #6b9cf0; --accent-text: #0d1117; --error: #f97066;
+      --code-bg: #232833;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  a { color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+          padding: 20px; margin-top: 20px; }
+  form { display: flex; gap: 8px; }
+  input[type=text] { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 8px; font: inherit;
+          border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+  button { padding: 10px 16px; border: 0; border-radius: 8px; font: inherit; font-weight: 600;
+           background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--border); font-weight: 500; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .examples button { font-size: 13px; padding: 5px 10px; }
+  .answer { font-size: 16px; margin: 16px 0 0; }
+  .error { color: var(--error); margin-top: 12px; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  pre { background: var(--code-bg); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; }
+  .report { max-height: 520px; overflow-y: auto; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  @media (max-width: 560px) { form { flex-direction: column; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Delivery Pulse AI</h1>
+    <span class="muted" id="status">Checking status…</span>
+  </header>
+
+  <section class="card">
+    <h2>Ask your data</h2>
+    <form id="ask-form">
+      <input type="text" id="question" maxlength="500" autocomplete="off"
+             placeholder="e.g. Which repository had the slowest median lead time this month?">
+      <button type="submit" id="ask-btn">Ask</button>
+    </form>
+    <div class="examples" id="examples"></div>
+    <div id="result"></div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2 style="margin:0">Latest weekly report</h2>
+      <button class="secondary" id="report-btn">Generate now</button>
+    </div>
+    <div class="report" id="report"><p class="muted">Loading…</p></div>
+  </section>
+</main>
+
+<script>
+const EXAMPLES = [
+  "Who has the most open pull requests?",
+  "Median lead time per repository in the last 30 days",
+  "Which open issues are older than 90 days and unassigned?",
+  "Ile PR-ów zmergowano w każdym repozytorium w tym tygodniu?",
+];
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+
+async function api(path, options = {}) {
+  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...options });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.detail || res.statusText);
+  return body;
+}
+
+function renderTable(columns, rows) {
+  const wrap = el("div", null, "table-wrap");
+  const table = el("table");
+  const head = table.createTHead().insertRow();
+  columns.forEach((c) => head.appendChild(el("th", c)));
+  const tbody = table.createTBody();
+  rows.forEach((r) => {
+    const tr = tbody.insertRow();
+    r.forEach((v) => {
+      const td = tr.insertCell();
+      if (typeof v === "string" && /^https:\/\/github\.com\//.test(v)) {
+        const a = el("a", v.replace("https://github.com/", "")); a.href = v; a.target = "_blank"; a.rel = "noopener";
+        td.appendChild(a);
+      } else {
+        td.textContent = v === null ? "—" : typeof v === "number" ? (Math.round(v * 10) / 10).toString() : v;
+      }
+    });
+  });
+  wrap.appendChild(table);
+  return wrap;
+}
+
+async function ask(question) {
+  const result = $("result");
+  result.replaceChildren(el("p", "Thinking…", "muted"));
+  $("ask-btn").disabled = true;
+  try {
+    const data = await api("/api/ask", { method: "POST", body: JSON.stringify({ question }) });
+    result.replaceChildren();
+    if (data.error) {
+      result.appendChild(el("p", "Could not answer: " + data.error, "error"));
+    } else {
+      if (data.answer) result.appendChild(el("p", data.answer, "answer"));
+      result.appendChild(renderTable(data.columns, data.rows));
+    }
+    const details = el("details");
+    details.appendChild(el("summary", "Show SQL" + (data.attempts.length ? ` (${data.attempts.length} retry)` : "")));
+    details.appendChild(el("pre", data.executed_sql || data.sql));
+    result.appendChild(details);
+  } catch (err) {
+    result.replaceChildren(el("p", err.message, "error"));
+  } finally {
+    $("ask-btn").disabled = false;
+  }
+}
+
+async function loadReport() {
+  try {
+    const r = await api("/api/reports/latest");
+    const box = $("report");
+    box.innerHTML = r.html;
+    box.prepend(el("p", `${r.period_start} – ${r.period_end} · ${r.model}`, "muted"));
+  } catch (err) {
+    $("report").replaceChildren(el("p", err.message, "muted"));
+  }
+}
+
+async function loadStatus() {
+  try {
+    const h = await api("/api/health");
+    const last = h.last_successful_etl ? new Date(h.last_successful_etl).toLocaleString() : "never";
+    $("status").replaceChildren(`DB: ${h.database} · last sync: ${last} · ${h.llm} · `);
+    const a = el("a", "Dashboard"); a.href = h.dashboard_url; a.target = "_blank";
+    $("status").appendChild(a);
+  } catch { $("status").textContent = "API unavailable"; }
+}
+
+EXAMPLES.forEach((q) => {
+  const b = el("button", q, "secondary");
+  b.type = "button";
+  b.onclick = () => { $("question").value = q; ask(q); };
+  $("examples").appendChild(b);
+});
+$("ask-form").onsubmit = (e) => { e.preventDefault(); const q = $("question").value.trim(); if (q) ask(q); };
+$("report-btn").onclick = async () => {
+  $("report-btn").disabled = true;
+  $("report").replaceChildren(el("p", "Generating report…", "muted"));
+  try { await api("/api/reports", { method: "POST", body: JSON.stringify({ notify: false }) }); await loadReport(); }
+  catch (err) { $("report").replaceChildren(el("p", err.message, "error")); }
+  finally { $("report-btn").disabled = false; }
+};
+loadStatus();
+loadReport();
+</script>
+</body>
+</html>
